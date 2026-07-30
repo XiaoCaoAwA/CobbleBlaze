@@ -1,0 +1,28 @@
+architectury {
+    common rootProject.enabled_platforms.split(',')
+}
+
+dependencies {
+    modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
+
+    modImplementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+    modCompileOnly("com.cobblemon:mod:${project.cobblemon_version}")
+
+    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:${project.kotlin_version}")
+
+    // Create Crafts & Additions (optional compat). Kept here — common-only — so its NeoForge jar
+    // never enters the Fabric remap classpath (which TinyRemapper can't remap it across). The CCA
+    // mixins are skipped at runtime when CCA is absent.
+    compileOnly files("libs/createaddition-1.6.0.jar")
+    // Compile-only stub of Catnip's LerpedFloat (a Create dependency not shipped in Create's jar).
+    // Needed only so the contraption Mixin callback can declare Create's static renderInContraption(...)
+    // signature. The real class is provided at runtime by Catnip; the stub is never bundled.
+    compileOnly files("libs/catnip-stub.jar")
+}
+
+// The platform subprojects consume common via transformProductionFabric / transformProductionNeoForge,
+// NOT via this task. common's own remapJar trips TinyRemapper on the well-known
+// Container#isEmpty()/getItem() default-method mapping conflict as soon as create + cobblemon (+ CCA)
+// are all on the classpath, so disable it (and the matching sources remap).
+tasks.matching { it.name in ['remapJar', 'remapSourcesJar'] }.configureEach { enabled = false }

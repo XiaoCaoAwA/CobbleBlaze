@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "id": "cobbleblaze",
+  "version": "${version}",
+  "name": "CobbleBlaze",
+  "description": "Use Cobblemon as fuel for Create's Blaze Burner — catch a fire-type Cobblemon and drop it into the burner to act as your combustion chamber.",
+  "authors": [
+    "XiaoCaoAwA"
+  ],
+  "contact": {
+    "homepage": ""
+  },
+  "license": "All-Rights-Reserved",
+  "icon": "assets/cobbleblaze/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "xiaocaoawa.minecraft.mod.cobbleblaze.fabric.CobbleBlazeFabric"
+    ],
+    "client": [
+      "xiaocaoawa.minecraft.mod.cobbleblaze.fabric.client.CobbleBlazeFabricClient"
+    ]
+  },
+  "mixins": [
+    "cobbleblaze.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.18.1",
+    "minecraft": "~1.21.1",
+    "java": ">=21",
+    "architectury": ">=13.0.8",
+    "fabric-api": "*",
+    "create": ">=6.0.10",
+    "flywheel": ">=1.0.0",
+    "cobblemon": ">=1.7.1"
+  },
+  "suggests": {
+    "another-mod": "*"
+  }
+}

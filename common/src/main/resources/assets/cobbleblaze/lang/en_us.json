@@ -1,0 +1,8 @@
+{
+  "cobbleblaze.gui.select_pokemon": "Select a Fire-type Cobblemon",
+  "cobbleblaze.message.no_pokemon": "Your party is empty.",
+  "cobbleblaze.message.empty": "This burner is empty.",
+  "cobbleblaze.message.party_full": "Your party is full!",
+  "cobbleblaze.message.deposited": "Deposited %s.",
+  "cobbleblaze.message.retrieved": "Retrieved %s."
+}

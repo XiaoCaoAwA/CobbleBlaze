@@ -1,0 +1,19 @@
+{
+  "required": true,
+  "package": "xiaocaoawa.minecraft.mod.cobbleblaze.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "minVersion": "0.8",
+  "client": [
+    "client.BlazeBurnerRendererMixin",
+    "client.BlazeBurnerVisualMixin",
+    "client.LiquidBlazeBurnerRendererMixin",
+    "client.LiquidBlazeBurnerVisualMixin"
+  ],
+  "mixins": [
+    "BlazeBurnerBlockEntityMixin",
+    "LiquidBlazeBurnerBlockEntityMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

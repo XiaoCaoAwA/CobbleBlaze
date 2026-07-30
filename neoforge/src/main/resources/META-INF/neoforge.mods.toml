@@ -1,0 +1,59 @@
+modLoader = "javafml"
+loaderVersion = "[2,)"
+#issueTrackerURL = ""
+license = "All Rights Reserved"
+
+[[mods]]
+modId = "cobbleblaze"
+version = "${version}"
+displayName = "CobbleBlaze"
+authors = "XiaoCaoAwA"
+description = '''
+Use Cobblemon as fuel for Create's Blaze Burner — catch a fire-type Cobblemon and drop it into the burner to act as your combustion chamber.
+'''
+#logoFile = ""
+
+[[dependencies.cobbleblaze]]
+modId = "neoforge"
+type = "required"
+versionRange = "[21,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.cobbleblaze]]
+modId = "minecraft"
+type = "required"
+versionRange = "[1.21.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.cobbleblaze]]
+modId = "architectury"
+type = "required"
+versionRange = "[13.0.8,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.cobbleblaze]]
+modId = "create"
+type = "required"
+versionRange = "[6.0.10,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.cobbleblaze]]
+modId = "flywheel"
+type = "required"
+versionRange = "[1.0.0,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.cobbleblaze]]
+modId = "cobblemon"
+type = "required"
+versionRange = "[1.7.1,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[mixins]]
+config = "cobbleblaze.mixins.json"
