@@ -1,5 +1,6 @@
 package xiaocaoawa.minecraft.mod.cobbleblaze.mixin.client;
 
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlockEntity;
 import com.simibubi.create.content.processing.burner.BlazeBurnerVisual;
 import com.simibubi.create.content.processing.burner.ScrollInstance;
@@ -57,7 +58,10 @@ public abstract class BlazeBurnerVisualMixin {
     private void cobbleblaze$beginFrame(DynamicVisual.Context context, CallbackInfo ci) {
         boolean occupied = this.cobbleblaze$blockEntity instanceof BlazeBurnerOccupant burner
                 && burner.cobbleblaze$getOccupant() != null;
-        boolean visible = !occupied;
+        // NONE = empty cage. Normal burners are always SMOULDERING+ (Create's getHeatLevel never
+        // returns NONE for a block entity), so this only hides a stale BE left after retrieve.
+        boolean noneHeat = this.cobbleblaze$blockEntity.getHeatLevelFromBlock() == BlazeBurnerBlock.HeatLevel.NONE;
+        boolean visible = !occupied && !noneHeat;
         setVisible(this.head, visible);
         setVisible(this.goggles, visible);
         setVisible(this.hat, visible);

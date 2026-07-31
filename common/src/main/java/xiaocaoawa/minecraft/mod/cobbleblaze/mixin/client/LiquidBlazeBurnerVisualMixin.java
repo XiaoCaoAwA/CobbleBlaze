@@ -2,6 +2,7 @@ package xiaocaoawa.minecraft.mod.cobbleblaze.mixin.client;
 
 import com.mrh0.createaddition.blocks.liquid_blaze_burner.LiquidBlazeBurnerBlockEntity;
 import com.mrh0.createaddition.blocks.liquid_blaze_burner.LiquidBlazeBurnerVisual;
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.burner.ScrollInstance;
 import dev.engine_room.flywheel.api.instance.Instance;
 import dev.engine_room.flywheel.api.visual.DynamicVisual;
@@ -52,7 +53,8 @@ public abstract class LiquidBlazeBurnerVisualMixin {
     private void cobbleblaze$beginFrame(DynamicVisual.Context context, CallbackInfo ci) {
         boolean occupied = this.cobbleblaze$blockEntity instanceof BlazeBurnerOccupant burner
                 && burner.cobbleblaze$getOccupant() != null;
-        boolean visible = !occupied;
+        boolean noneHeat = this.cobbleblaze$blockEntity.getHeatLevelFromBlock() == BlazeBurnerBlock.HeatLevel.NONE;
+        boolean visible = !occupied && !noneHeat;
         setVisible(this.head, visible);
         setVisible(this.goggles, visible);
         setVisible(this.hat, visible);

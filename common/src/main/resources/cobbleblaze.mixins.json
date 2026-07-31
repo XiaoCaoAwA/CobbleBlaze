@@ -11,7 +11,8 @@
   ],
   "mixins": [
     "BlazeBurnerBlockEntityMixin",
-    "LiquidBlazeBurnerBlockEntityMixin"
+    "LiquidBlazeBurnerBlockEntityMixin",
+    "SmartBlockEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -22,4 +22,10 @@ public interface BlazeBurnerOccupant {
     /** Removes and returns the stored Pokémon (rebuilt from its saved data), or {@code null} if empty. */
     @Nullable
     Pokemon cobbleblaze$retrieve();
+
+    /**
+     * Publish the current occupant to the position-keyed transfer store. Called when this block
+     * entity is removed (e.g. CCA's straw conversion) so the replacement block entity can reclaim it.
+     */
+    void cobbleblaze$publishTransfer();
 }

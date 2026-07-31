@@ -8,6 +8,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -130,15 +131,32 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
         }
         LiquidBlazeBurnerBlockEntity self = (LiquidBlazeBurnerBlockEntity) (Object) this;
         Level level = self.getLevel();
-        if (level == null) {
-            return null;
-        }
-        RegistryAccess registries = level.registryAccess();
-        Pokemon pokemon = Pokemon.Companion.loadFromNBT(registries, this.cobbleblaze$fullNbt);
+        RegistryAccess registries = level == null ? null : level.registryAccess();
+        Pokemon pokemon = registries == null ? null : Pokemon.Companion.loadFromNBT(registries, this.cobbleblaze$fullNbt);
         this.cobbleblaze$occupant = null;
         this.cobbleblaze$fullNbt = null;
-        self.updateBlockState();
         self.sendData();
+        // Revert to a true empty blaze cage: replace the liquid burner with a fresh blaze_burner[NONE].
+        // A block-type change reliably drops the block entity on both sides. Looked up by id to avoid
+        // pulling in Registrate (AllBlocks) as a compile dependency.
+        if (level != null && !level.isClientSide) {
+            OccupantTransfer.remove(level.dimension(), self.getBlockPos());
+            net.minecraft.world.level.block.Block blazeBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .get(net.minecraft.resources.ResourceLocation.parse("create:blaze_burner"));
+            if (blazeBlock != null) {
+                level.setBlock(self.getBlockPos(), blazeBlock.defaultBlockState(), 3);
+            }
+        }
         return pokemon;
+    }
+
+    @Override
+    @Unique
+    public void cobbleblaze$publishTransfer() {
+        BlockEntity self = (BlockEntity) (Object) this;
+        Level level = self.getLevel();
+        if (level != null && !level.isClientSide && this.cobbleblaze$occupant != null) {
+            OccupantTransfer.offer(level.dimension(), self.getBlockPos(), this.cobbleblaze$occupant, this.cobbleblaze$fullNbt);
+        }
     }
 }
