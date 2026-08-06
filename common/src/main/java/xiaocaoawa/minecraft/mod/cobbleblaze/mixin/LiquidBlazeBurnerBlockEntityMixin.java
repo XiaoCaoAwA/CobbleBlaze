@@ -21,10 +21,11 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantTransfer;
-import xiaocaoawa.minecraft.mod.cobbleblaze.burner.Occupants;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlockEntity;
 
 /**
- * Same occupant behaviour as {@link BlazeBurnerBlockEntityMixin}, applied to Create Crafts &amp;
+ * Same occupant behaviour as {@link PokemonBlazeBurnerBlockEntity}, applied to Create Crafts &amp;
  * Additions' {@code LiquidBlazeBurnerBlockEntity} (the fluid-drinking variant the "straw" converts
  * a burner into). CCA's liquid burner is a parallel implementation (its own BE/Visual/Renderer),
  * so without this mixin the cobblemon would vanish and the blaze would return after using the straw.
@@ -107,18 +108,14 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
     @Override
     @Unique
     public void cobbleblaze$deposit(@Nullable Pokemon pokemon) {
-        LiquidBlazeBurnerBlockEntity self = (LiquidBlazeBurnerBlockEntity) (Object) this;
-        if (pokemon == null) {
-            this.cobbleblaze$occupant = null;
-            this.cobbleblaze$fullNbt = null;
-        } else {
-            Level level = self.getLevel();
-            if (level != null) {
-                RegistryAccess registries = level.registryAccess();
-                this.cobbleblaze$fullNbt = pokemon.saveToNBT(registries, new CompoundTag());
-            }
-            this.cobbleblaze$occupant = Occupants.fromPokemon(pokemon);
+        // Liquid blaze burners may only receive a Pokemon through OccupantTransfer during an
+        // occupied Pokemon burner + straw conversion. Direct party deposits are forbidden.
+        if (pokemon != null) {
+            return;
         }
+        LiquidBlazeBurnerBlockEntity self = (LiquidBlazeBurnerBlockEntity) (Object) this;
+        this.cobbleblaze$occupant = null;
+        this.cobbleblaze$fullNbt = null;
         self.updateBlockState();
         self.sendData();
     }
@@ -136,16 +133,10 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
         this.cobbleblaze$occupant = null;
         this.cobbleblaze$fullNbt = null;
         self.sendData();
-        // Revert to a true empty blaze cage: replace the liquid burner with a fresh blaze_burner[NONE].
-        // A block-type change reliably drops the block entity on both sides. Looked up by id to avoid
-        // pulling in Registrate (AllBlocks) as a compile dependency.
+        // Return to CobbleBlaze's dedicated empty chamber, never Create's empty blaze burner.
         if (level != null && !level.isClientSide) {
             OccupantTransfer.remove(level.dimension(), self.getBlockPos());
-            net.minecraft.world.level.block.Block blazeBlock = net.minecraft.core.registries.BuiltInRegistries.BLOCK
-                    .get(net.minecraft.resources.ResourceLocation.parse("create:blaze_burner"));
-            if (blazeBlock != null) {
-                level.setBlock(self.getBlockPos(), blazeBlock.defaultBlockState(), 3);
-            }
+            level.setBlock(self.getBlockPos(), CobbleBlazeContent.POKEMON_BLAZE_BURNER.get().defaultBlockState(), 3);
         }
         return pokemon;
     }

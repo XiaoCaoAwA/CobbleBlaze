@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Lightweight, client-safe description of the Cobblemon occupying a burner: just what the
  * renderer needs (species + aspects) plus the species' base scale. The full Pokémon data is kept
- * server-side only (see {@code BlazeBurnerBlockEntityMixin}) so it round-trips intact on retrieval.
+ * server-side by the burner block entity so it round-trips intact on retrieval and block drops.
  */
 public final class CobblemonOccupant {
     public final ResourceLocation species;

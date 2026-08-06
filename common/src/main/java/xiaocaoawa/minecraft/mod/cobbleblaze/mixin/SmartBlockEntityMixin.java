@@ -1,6 +1,8 @@
 package xiaocaoawa.minecraft.mod.cobbleblaze.mixin;
 
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -24,7 +26,15 @@ public abstract class SmartBlockEntityMixin {
     @Inject(method = "setRemoved", at = @At("HEAD"), require = 0)
     private void cobbleblaze$setRemoved(CallbackInfo ci) {
         BlockEntity self = (BlockEntity) (Object) this;
-        if (self instanceof BlazeBurnerOccupant burner && burner.cobbleblaze$getOccupant() != null) {
+        if (!(self instanceof BlazeBurnerOccupant burner) || burner.cobbleblaze$getOccupant() == null
+                || self.getLevel() == null || self.getLevel().isClientSide) {
+            return;
+        }
+        ResourceLocation replacement = BuiltInRegistries.BLOCK.getKey(
+                self.getLevel().getBlockState(self.getBlockPos()).getBlock());
+        if (replacement.equals(ResourceLocation.fromNamespaceAndPath("createaddition", "liquid_blaze_burner"))
+                || replacement.equals(ResourceLocation.fromNamespaceAndPath(
+                        "cobbleblaze", "pokemon_liquid_blaze_burner"))) {
             burner.cobbleblaze$publishTransfer();
         }
     }

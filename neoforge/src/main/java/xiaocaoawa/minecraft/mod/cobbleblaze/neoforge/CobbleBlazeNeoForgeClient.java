@@ -15,14 +15,8 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.client.CobbleBlazeClient;
 @EventBusSubscriber(modid = CobbleBlaze.MOD_ID, value = Dist.CLIENT, bus = EventBusSubscriber.Bus.GAME)
 public final class CobbleBlazeNeoForgeClient {
 
-    private static boolean inited = false;
-
     @SubscribeEvent
     public static void onRenderLevel(RenderLevelStageEvent event) {
-        if (!inited) {
-            CobbleBlazeClient.init();
-            inited = true;
-        }
         if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_ENTITIES) {
             return;
         }

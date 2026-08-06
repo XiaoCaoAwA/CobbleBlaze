@@ -3,8 +3,8 @@ package xiaocaoawa.minecraft.mod.cobbleblaze.burner;
 import net.minecraft.core.BlockPos;
 
 /**
- * Decouples the (both-side) {@code BlazeBurnerBlockEntityMixin} from the (client-only) render
- * registry. The block-entity mixin fires changes through here; the client registers a listener to
+ * Decouples the both-side burner block entities from the client-only render registry. A block
+ * entity fires changes through here; the client registers a listener to
  * maintain the set of occupied burners to render. On the dedicated server the listener stays null
  * and the calls are no-ops.
  */

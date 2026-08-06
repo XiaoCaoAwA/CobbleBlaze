@@ -1,0 +1,144 @@
+package xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content.burner;
+
+import com.cobblemon.mod.common.pokemon.Pokemon;
+import com.mrh0.createaddition.blocks.liquid_blaze_burner.LiquidBlazeBurnerBlockEntity;
+import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import org.jetbrains.annotations.Nullable;
+import xiaocaoawa.minecraft.mod.cobbleblaze.CobbleBlaze;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantTransfer;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
+import xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content.CobbleBlazeNeoForgeContent;
+
+/** A Pokemon occupant plus CCA's real liquid tank and liquid-burning implementation. */
+public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurnerBlockEntity
+        implements BlazeBurnerOccupant {
+    private CobblemonOccupant occupant;
+    private CompoundTag fullNbt;
+
+    public PokemonLiquidBlazeBurnerBlockEntity(BlockPos pos, BlockState state) {
+        super(CobbleBlazeNeoForgeContent.POKEMON_LIQUID_BLAZE_BURNER_ENTITY.get(), pos, state);
+    }
+
+    @Override
+    public void tick() {
+        claimTransferredOccupant();
+        super.tick();
+    }
+
+    @Override
+    public void write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.write(tag, registries, clientPacket);
+        if (occupant != null) {
+            tag.put("CobbleBlaze", occupant.save());
+        }
+        if (!clientPacket && fullNbt != null) {
+            tag.put("CobbleBlazePokemon", fullNbt.copy());
+        }
+    }
+
+    @Override
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
+        occupant = tag.contains("CobbleBlaze")
+                ? CobblemonOccupant.load(tag.getCompound("CobbleBlaze"))
+                : null;
+        if (!clientPacket) {
+            fullNbt = tag.contains("CobbleBlazePokemon")
+                    ? tag.getCompound("CobbleBlazePokemon").copy()
+                    : null;
+        }
+        OccupantChangeBus.fire(getBlockPos(), occupant);
+    }
+
+    @Override
+    protected BlazeBurnerBlock.HeatLevel getHeatLevelFromFuelType(FuelType fuelType) {
+        return occupant == null
+                ? super.getHeatLevelFromFuelType(fuelType)
+                : CobbleBlaze.config().heatLevelFor(occupant.species);
+    }
+
+    @Override
+    public @Nullable CobblemonOccupant cobbleblaze$getOccupant() {
+        return occupant;
+    }
+
+    @Override
+    public void cobbleblaze$deposit(@Nullable Pokemon pokemon) {
+        // This block can only inherit a Pokemon from an occupied chamber during straw conversion.
+        if (pokemon != null) {
+            return;
+        }
+        occupant = null;
+        fullNbt = null;
+        refreshState();
+    }
+
+    @Override
+    public @Nullable Pokemon cobbleblaze$retrieve() {
+        Level level = getLevel();
+        if (fullNbt == null || level == null) {
+            return null;
+        }
+        RegistryAccess registries = level.registryAccess();
+        Pokemon pokemon = Pokemon.Companion.loadFromNBT(registries, fullNbt);
+        if (pokemon == null) {
+            return null;
+        }
+
+        occupant = null;
+        fullNbt = null;
+        if (!level.isClientSide) {
+            OccupantTransfer.remove(level.dimension(), getBlockPos());
+            BlockState emptyState = CobbleBlazeContent.POKEMON_BLAZE_BURNER.get().defaultBlockState();
+            if (getBlockState().hasProperty(BlazeBurnerBlock.FACING)
+                    && emptyState.hasProperty(BlazeBurnerBlock.FACING)) {
+                emptyState = emptyState.setValue(
+                        BlazeBurnerBlock.FACING, getBlockState().getValue(BlazeBurnerBlock.FACING));
+            }
+            level.setBlock(getBlockPos(), emptyState, 3);
+        }
+        return pokemon;
+    }
+
+    @Override
+    public void cobbleblaze$publishTransfer() {
+        Level level = getLevel();
+        if (level != null && !level.isClientSide && occupant != null && fullNbt != null) {
+            OccupantTransfer.offer(level.dimension(), getBlockPos(), occupant, fullNbt.copy());
+        }
+    }
+
+    public IFluidHandler cobbleblaze$getFluidHandler() {
+        return tankInventory;
+    }
+
+    private void claimTransferredOccupant() {
+        Level level = getLevel();
+        if (occupant != null || level == null || level.isClientSide) {
+            return;
+        }
+        OccupantTransfer.Payload payload = OccupantTransfer.take(level.dimension(), getBlockPos());
+        if (payload == null) {
+            return;
+        }
+        occupant = payload.descriptor();
+        fullNbt = payload.fullNbt().copy();
+        refreshState();
+    }
+
+    private void refreshState() {
+        updateBlockState();
+        setChanged();
+        sendData();
+    }
+}

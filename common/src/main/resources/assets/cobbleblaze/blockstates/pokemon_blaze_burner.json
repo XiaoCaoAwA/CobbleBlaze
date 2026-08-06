@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "cobbleblaze:block/pokemon_blaze_burner"
+    }
+  }
+}

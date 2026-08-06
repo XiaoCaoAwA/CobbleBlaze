@@ -1,8 +1,12 @@
 {
+  "block.cobbleblaze.pokemon_blaze_burner": "宝可梦烈焰燃烧室",
+  "block.cobbleblaze.pokemon_liquid_blaze_burner": "带吸管的宝可梦烈焰燃烧室",
   "cobbleblaze.gui.select_pokemon": "选择要放入的火系宝可梦",
   "cobbleblaze.message.no_pokemon": "你的队伍是空的。",
   "cobbleblaze.message.empty": "这个燃烧室是空的。",
+  "cobbleblaze.message.occupied": "这个燃烧室已经有宝可梦了。",
   "cobbleblaze.message.party_full": "你的队伍已满！",
   "cobbleblaze.message.deposited": "放入了 %s。",
-  "cobbleblaze.message.retrieved": "取回了 %s。"
+  "cobbleblaze.message.retrieved": "取回了 %s。",
+  "cobbleblaze.tooltip.occupant": "内含：%s"
 }

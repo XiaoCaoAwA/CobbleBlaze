@@ -10,7 +10,6 @@
     "client.LiquidBlazeBurnerVisualMixin"
   ],
   "mixins": [
-    "BlazeBurnerBlockEntityMixin",
     "LiquidBlazeBurnerBlockEntityMixin",
     "SmartBlockEntityMixin"
   ],

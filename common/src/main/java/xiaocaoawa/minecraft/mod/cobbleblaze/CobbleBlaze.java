@@ -2,6 +2,7 @@ package xiaocaoawa.minecraft.mod.cobbleblaze;
 
 import java.nio.file.Path;
 import xiaocaoawa.minecraft.mod.cobbleblaze.config.CobbleBlazeConfig;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
 
 public final class CobbleBlaze {
     public static final String MOD_ID = "cobbleblaze";
@@ -10,6 +11,7 @@ public final class CobbleBlaze {
 
     /** Called by each platform's main initializer with the game's config directory. */
     public static void init(Path configDir) {
+        CobbleBlazeContent.register();
         config = CobbleBlazeConfig.load(configDir);
     }
 

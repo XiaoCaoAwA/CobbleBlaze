@@ -1,8 +1,12 @@
 {
+  "block.cobbleblaze.pokemon_blaze_burner": "Pokemon Blaze Burner",
+  "block.cobbleblaze.pokemon_liquid_blaze_burner": "Straw-Equipped Pokemon Blaze Burner",
   "cobbleblaze.gui.select_pokemon": "Select a Fire-type Cobblemon",
   "cobbleblaze.message.no_pokemon": "Your party is empty.",
   "cobbleblaze.message.empty": "This burner is empty.",
+  "cobbleblaze.message.occupied": "This burner already contains a Pokemon.",
   "cobbleblaze.message.party_full": "Your party is full!",
   "cobbleblaze.message.deposited": "Deposited %s.",
-  "cobbleblaze.message.retrieved": "Retrieved %s."
+  "cobbleblaze.message.retrieved": "Retrieved %s.",
+  "cobbleblaze.tooltip.occupant": "Contains: %s"
 }

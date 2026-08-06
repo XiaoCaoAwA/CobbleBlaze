@@ -36,6 +36,10 @@ dependencies {
 
     modCompileOnly("com.cobblemon:neoforge:${project.cobblemon_version}")
 
+    // NeoForge-only API used by the straw-equipped Pokemon liquid burner. The actual mod remains
+    // an optional runtime integration and is detected before this content is registered.
+    compileOnly files("$rootDir/common/libs/createaddition-1.6.0.jar")
+
     modImplementation "dev.architectury:architectury-neoforge:$rootProject.architectury_api_version"
 
     common(project(path: ':common', configuration: 'namedElements')) { transitive false }

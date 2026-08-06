@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "cobbleblaze:pokemon_blaze_burner",
+    {
+      "id": "cobbleblaze:pokemon_liquid_blaze_burner",
+      "required": false
+    }
+  ]
+}
