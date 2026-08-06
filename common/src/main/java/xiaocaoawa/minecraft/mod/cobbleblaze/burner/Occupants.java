@@ -5,6 +5,7 @@ import com.cobblemon.mod.common.api.types.ElementalTypes;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -40,12 +41,12 @@ public final class Occupants {
                 + pokemon.getSpeed();
     }
 
-    public static int totalStats(RegistryAccess registries, CompoundTag nbt) {
-        if (registries == null || nbt == null || nbt.isEmpty()) {
+    public static int totalStats(HolderLookup.Provider registries, CompoundTag nbt) {
+        if (!(registries instanceof RegistryAccess registryAccess) || nbt == null || nbt.isEmpty()) {
             return 0;
         }
         try {
-            return totalStats(Pokemon.Companion.loadFromNBT(registries, nbt));
+            return totalStats(Pokemon.Companion.loadFromNBT(registryAccess, nbt));
         } catch (RuntimeException ignored) {
             return 0;
         }

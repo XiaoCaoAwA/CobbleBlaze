@@ -2,7 +2,6 @@ package xiaocaoawa.minecraft.mod.cobbleblaze.content;
 
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
-import com.simibubi.create.content.processing.burner.BlazeBurnerMovementBehaviour;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -18,6 +17,7 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.CobbleBlaze;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlock;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlockEntity;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlockItem;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerMovementBehaviour;
 
 public final class CobbleBlazeContent {
     private static final DeferredRegister<Block> BLOCKS =
@@ -56,7 +56,7 @@ public final class CobbleBlazeContent {
         }
         registered = true;
         POKEMON_BLAZE_BURNER.listen(block -> MovementBehaviour.REGISTRY.register(
-                block, new BlazeBurnerMovementBehaviour()));
+                block, new PokemonBlazeBurnerMovementBehaviour()));
         BLOCKS.register();
         ITEMS.register();
         BLOCK_ENTITY_TYPES.register();

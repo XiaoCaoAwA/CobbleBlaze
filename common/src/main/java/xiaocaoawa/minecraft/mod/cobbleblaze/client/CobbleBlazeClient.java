@@ -104,18 +104,16 @@ public final class CobbleBlazeClient {
         return null;
     }
 
-    // One animation state per contraption burner; weakly keyed so it's freed when the contraption is GC'd.
+    // One animation state per moving burner; weak keys release it with the contraption context.
     private static final WeakHashMap<MovementContext, FloatingState> CONTRAPTION_STATES = new WeakHashMap<>();
 
     /**
-     * Draws a cobblemon for a burner riding a contraption (e.g. on a train). The {@code poseStack}
-     * passed in must already be the combined {@code viewProjection × model} matrix placing the origin
-     * at the burner's position (see the renderer mixins).
+     * Draws a Pokemon for a burner riding a contraption. The pose stack is composed by the movement
+     * behaviour from Create's view and model stacks, including the actor's local block position.
      */
     public static void renderContraption(MovementContext context, CobblemonOccupant occupant,
                                          PoseStack poseStack, MultiBufferSource bufferSource) {
-        FloatingState state = CONTRAPTION_STATES.computeIfAbsent(context, c -> new FloatingState());
-        // On contraptions we don't track the player-facing yaw (the burner is moving); use the default.
+        FloatingState state = CONTRAPTION_STATES.computeIfAbsent(context, ignored -> new FloatingState());
         RENDERER.render(poseStack, bufferSource, occupant, state, LIGHT, 0.0F, 0.0F);
     }
 }

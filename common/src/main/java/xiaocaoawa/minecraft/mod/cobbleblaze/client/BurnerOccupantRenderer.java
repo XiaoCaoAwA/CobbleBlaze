@@ -24,9 +24,9 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
  * burner's block corner. Uses Cobblemon's {@link VaryingModelRepository} exactly like
  * {@code RestorationTankRenderer} does (entityless, via {@link FloatingState}).
  *
- * <p>This is the only draw path: a world-render event positions the stack and calls here. We never
- * touch Create's blaze model, so burner transforms (conductor hat, fluid mode) can't "revert" it,
- * and there is no placement delay.</p>
+ * <p>Stationary burners call this from the world-render event; moving burners call it from their
+ * movement behaviour with Create's composed contraption transform. This renderer never touches
+ * Create's blaze model.</p>
  */
 public final class BurnerOccupantRenderer {
 

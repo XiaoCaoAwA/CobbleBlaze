@@ -1,6 +1,5 @@
 package xiaocaoawa.minecraft.mod.cobbleblaze.content.burner;
 
-import com.simibubi.create.AllTags;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlockEntity;
@@ -87,9 +86,8 @@ public final class PokemonBlazeBurnerBlockEntity extends BlazeBurnerBlockEntity 
     }
 
     private static boolean isSuperheatedFuel(ItemStack stack) {
-        return AllTags.AllItemTags.BLAZE_BURNER_FUEL_SPECIAL.matches(stack)
-                || BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(
-                        ResourceLocation.fromNamespaceAndPath("create", "blaze_cake"));
+        return BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(
+                ResourceLocation.fromNamespaceAndPath("create", "blaze_cake"));
     }
 
     @Override
