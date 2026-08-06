@@ -21,6 +21,7 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantTransfer;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.Occupants;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlockEntity;
 
@@ -39,12 +40,16 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
     private CobblemonOccupant cobbleblaze$occupant;
 
     @Unique
+    private int cobbleblaze$totalStats;
+
+    @Unique
     private CompoundTag cobbleblaze$fullNbt;
 
     @Inject(method = "write", at = @At("RETURN"))
     private void cobbleblaze$write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
         if (this.cobbleblaze$occupant != null) {
             tag.put("CobbleBlaze", this.cobbleblaze$occupant.save());
+            tag.putInt("CobbleBlazeTotalStats", this.cobbleblaze$totalStats);
         }
         if (!clientPacket && this.cobbleblaze$fullNbt != null) {
             tag.put("CobbleBlazePokemon", this.cobbleblaze$fullNbt);
@@ -61,6 +66,14 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
             this.cobbleblaze$fullNbt = tag.contains("CobbleBlazePokemon")
                     ? tag.getCompound("CobbleBlazePokemon").copy()
                     : null;
+            BlockEntity self = (BlockEntity) (Object) this;
+            this.cobbleblaze$totalStats = tag.contains("CobbleBlazeTotalStats")
+                    ? tag.getInt("CobbleBlazeTotalStats")
+                    : Occupants.totalStats(
+                            self.getLevel() == null ? null : self.getLevel().registryAccess(),
+                            this.cobbleblaze$fullNbt);
+        } else {
+            this.cobbleblaze$totalStats = tag.getInt("CobbleBlazeTotalStats");
         }
         if (previous != this.cobbleblaze$occupant) {
             BlockEntity self = (BlockEntity) (Object) this;
@@ -71,8 +84,10 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
     /** CCA's liquid burner derives its heat level from its fuel type; override it like Create's. */
     @Inject(method = "getHeatLevelFromFuelType", at = @At("HEAD"), cancellable = true, remap = false)
     private void cobbleblaze$getHeatLevelFromFuelType(LiquidBlazeBurnerBlockEntity.FuelType fuelType, CallbackInfoReturnable<BlazeBurnerBlock.HeatLevel> cir) {
-        if (this.cobbleblaze$occupant != null) {
-            cir.setReturnValue(CobbleBlaze.config().heatLevelFor(this.cobbleblaze$occupant.species));
+        if (this.cobbleblaze$occupant != null
+                && CobbleBlaze.config().hasInfiniteBurning(this.cobbleblaze$totalStats)
+                && fuelType != LiquidBlazeBurnerBlockEntity.FuelType.SPECIAL) {
+            cir.setReturnValue(CobbleBlaze.config().infiniteHeatLevelFor(this.cobbleblaze$occupant.species));
         }
     }
 
@@ -91,6 +106,7 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
                     System.out.println("[CobbleBlaze] liquid tick-claim: reclaimed occupant " + payload.descriptor().species + " at " + self.getBlockPos());
                     this.cobbleblaze$occupant = payload.descriptor();
                     this.cobbleblaze$fullNbt = payload.fullNbt();
+                    this.cobbleblaze$totalStats = Occupants.totalStats(level.registryAccess(), this.cobbleblaze$fullNbt);
                     LiquidBlazeBurnerBlockEntity be = (LiquidBlazeBurnerBlockEntity) (Object) this;
                     be.updateBlockState();
                     be.sendData();
@@ -116,6 +132,7 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
         LiquidBlazeBurnerBlockEntity self = (LiquidBlazeBurnerBlockEntity) (Object) this;
         this.cobbleblaze$occupant = null;
         this.cobbleblaze$fullNbt = null;
+        this.cobbleblaze$totalStats = 0;
         self.updateBlockState();
         self.sendData();
     }

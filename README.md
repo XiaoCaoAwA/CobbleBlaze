@@ -1,19 +1,22 @@
 # CobbleBlaze
 
-Use a Cobblemon fire-type Pokémon as the "combustion chamber" inside Create's Blaze Burner —
+Use a Cobblemon fire-type Pokémon as the occupant of a dedicated Pokémon Blaze Burner —
 rendered with Cobblemon's own model, with no asset replacement and none of the flicker/reversion
 problems of the old `createslugma` approach.
 
 ## How it works
 
-- **No block swap.** The burner stays Create's `BlazeBurnerBlock` the whole time. The occupant
-  Pokémon is stored as extra NBT on `BlazeBurnerBlockEntity` (a Mixin field) and rides Create's own
-  client-sync, so there is **no placement flicker**.
-- **Infinite, configurable heat.** While occupied, the burner holds a configurable `HeatLevel`
-  (default `seething`) — that's the "power generation". Removing the Pokémon extinguishes it.
-- **Blaze fully suppressed.** Two Mixins hide Create's blaze on every render path:
-  - `BlazeBurnerVisual` (Flywheel — the default path) → `setVisible(false)` on every blaze instance.
-  - `BlazeBurnerRenderer.renderSafe` (Flywheel-off / fallback) → cancel.
+- **Dedicated empty chamber.** `cobbleblaze:pokemon_blaze_burner` is registered as a completely
+  separate block and appears in the Functional Blocks creative tab. Regular Create blaze burners
+  are no longer used for Pokémon.
+- **Portable occupants.** Breaking an occupied Pokémon Blaze Burner drops the same burner with the
+  complete Pokémon stored in its block-entity-data component. Placing it again restores that exact
+  Pokémon and immediately renders its model.
+- **Infinite, configurable normal heat.** A qualifying occupant holds configurable normal heat
+  (default `kindled`). `seething` still requires timed special fuel such as a Blaze Cake or ethanol.
+- **No blaze head.** The dedicated block uses only Create's empty cage model. Its own block-entity
+  type is not registered with Create's blaze renderer, while compatibility Mixins suppress the
+  blaze on CCA and moving-contraption render paths.
 - **Cobblemon drawn by us.** A world-render event draws the occupant model via Cobblemon's
   `VaryingModelRepository` (same path as the restoration tank). One draw path, never fights Create's
   transforms, so conductor-hat / fluid modes can't "revert" it.
@@ -29,11 +32,12 @@ problems of the old `createslugma` approach.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `defaultHeatLevel` | `seething` | Heat level while occupied (`none`/`smouldering`/`fading`/`kindled`/`seething`). |
+| `defaultHeatLevel` | `kindled` | Normal heat level for stat-based infinite burning. `seething` is reserved for timed special fuel. |
 | `speciesHeatLevels` | `{}` | Per-species overrides, keyed by id (`cobblemon:slugma`) or path (`slugma`). |
 | `blacklistedSpecies` | `[]` | Species that can never be deposited. |
 | `allowAnyFireType` | `true` | If false, only `whitelistedSpecies` may be deposited. |
 | `whitelistedSpecies` | `[]` | Used when `allowAnyFireType` is false. |
+| `infiniteBurningStatThreshold` | `1000` | Six battle stats must be strictly greater than this value for infinite burning; at or below it, normal fuel is required. |
 | `modelScale` | `0.5` | Render-size multiplier (× the species' baseScale). **Tune visually.** |
 | `modelYOffset` | `0.55` | Vertical offset of the model inside the burner. **Tune visually.** |
 | `modelRotation` | `0.0` | Y rotation of the model (degrees). |
@@ -56,12 +60,13 @@ Fabric testing you need the Fabric builds of Create/Flywheel/Ponder/Cobblemon.
 CCA's "straw" converts a blaze burner into a parallel `LiquidBlazeBurnerBlock` (its own
 BE/Visual/Renderer, not extending Create's). CobbleBlaze now supports that variant too:
 
-- The occupant mixin, render suppression, and right-click handling are applied to CCA's
-  `LiquidBlazeBurnerBlockEntity`/`Visual`/`Renderer` as well (these mixins are skipped automatically
-  when CCA isn't installed).
+- An occupied Pokémon Blaze Burner accepts CCA's straw and becomes CCA's fluid-capable
+  `LiquidBlazeBurnerBlock`, preserving the Pokémon and rendering its model instead of a blaze.
+- A normal CCA liquid blaze burner cannot accept Pokémon directly. Its occupant can only come from
+  the occupied Pokémon-burner straw conversion above.
 - **Occupant survives the straw conversion** — CCA rebuilds the block entity without copying NBT, so
   CobbleBlaze hands the occupant off (position-keyed) and the new liquid burner picks it up on its
-  first tick. So using the straw no longer "reverts" the blaze or loses the Pokémon.
+  first tick.
 
 ## Contraptions (trains)
 

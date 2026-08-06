@@ -23,13 +23,13 @@ public final class CobbleBlazeConfig {
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final String FILE_NAME = "cobbleblaze.json";
 
-    /** Heat level a burner holds while occupied, unless overridden per-species. */
-    public String defaultHeatLevel = "seething";
+    /** Normal heat level a burner holds while occupied, unless overridden per-species. */
+    public String defaultHeatLevel = "kindled";
 
     /** Per-species overrides, keyed by either full id ("cobblemon:slugma") or path ("slugma"). */
     public Map<String, String> speciesHeatLevels = new HashMap<>();
 
-    /** Species that may never be deposited, even if fire-type. */
+     /** Species that may never be deposited, even if fire-type. */
     public List<String> blacklistedSpecies = new ArrayList<>();
 
     /** If true, any fire-type Cobblemon may be deposited. If false, only whitelisted ones. */
@@ -37,6 +37,9 @@ public final class CobbleBlazeConfig {
 
     /** Explicitly allowed species (used when allowAnyFireType is false). */
     public List<String> whitelistedSpecies = new ArrayList<>();
+
+    /** A burner is infinite only when the stored Pokemon's six battle stats exceed this value. */
+    public int infiniteBurningStatThreshold = 1000;
 
     /** Global multiplier on the rendered model size (multiplied by the species' baseScale). */
     public float modelScale = 0.5F;
@@ -95,6 +98,14 @@ public final class CobbleBlazeConfig {
         return parseHeatLevel(name);
     }
 
+    /** Keeps stat-based infinite heat below the timed superheated tier. */
+    public BlazeBurnerBlock.HeatLevel infiniteHeatLevelFor(ResourceLocation species) {
+        BlazeBurnerBlock.HeatLevel heat = heatLevelFor(species);
+        return heat == BlazeBurnerBlock.HeatLevel.SEETHING
+                ? BlazeBurnerBlock.HeatLevel.KINDLED
+                : heat;
+    }
+
     public boolean isAllowed(ResourceLocation species) {
         String key = species.toString();
         String path = species.getPath();
@@ -103,6 +114,10 @@ public final class CobbleBlazeConfig {
         }
         if (allowAnyFireType) return true;
         return whitelistedSpecies != null && (whitelistedSpecies.contains(key) || whitelistedSpecies.contains(path));
+    }
+
+    public boolean hasInfiniteBurning(int totalStats) {
+        return totalStats > infiniteBurningStatThreshold;
     }
 
     private static BlazeBurnerBlock.HeatLevel parseHeatLevel(String name) {

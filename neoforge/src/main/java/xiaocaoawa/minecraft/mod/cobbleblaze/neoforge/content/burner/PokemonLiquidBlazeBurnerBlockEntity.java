@@ -16,6 +16,7 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantTransfer;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.Occupants;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
 import xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content.CobbleBlazeNeoForgeContent;
 
@@ -24,6 +25,7 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
         implements BlazeBurnerOccupant {
     private CobblemonOccupant occupant;
     private CompoundTag fullNbt;
+    private int totalStats;
 
     public PokemonLiquidBlazeBurnerBlockEntity(BlockPos pos, BlockState state) {
         super(CobbleBlazeNeoForgeContent.POKEMON_LIQUID_BLAZE_BURNER_ENTITY.get(), pos, state);
@@ -40,6 +42,7 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
         super.write(tag, registries, clientPacket);
         if (occupant != null) {
             tag.put("CobbleBlaze", occupant.save());
+            tag.putInt("CobbleBlazeTotalStats", totalStats);
         }
         if (!clientPacket && fullNbt != null) {
             tag.put("CobbleBlazePokemon", fullNbt.copy());
@@ -56,15 +59,24 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
             fullNbt = tag.contains("CobbleBlazePokemon")
                     ? tag.getCompound("CobbleBlazePokemon").copy()
                     : null;
+            totalStats = tag.contains("CobbleBlazeTotalStats")
+                    ? tag.getInt("CobbleBlazeTotalStats")
+                    : Occupants.totalStats(registries, fullNbt);
+        } else {
+            totalStats = tag.getInt("CobbleBlazeTotalStats");
         }
         OccupantChangeBus.fire(getBlockPos(), occupant);
     }
 
     @Override
     protected BlazeBurnerBlock.HeatLevel getHeatLevelFromFuelType(FuelType fuelType) {
-        return occupant == null
-                ? super.getHeatLevelFromFuelType(fuelType)
-                : CobbleBlaze.config().heatLevelFor(occupant.species);
+        if (occupant == null) {
+            return BlazeBurnerBlock.HeatLevel.NONE;
+        }
+        return CobbleBlaze.config().hasInfiniteBurning(totalStats)
+                && fuelType != FuelType.SPECIAL
+                ? CobbleBlaze.config().infiniteHeatLevelFor(occupant.species)
+                : super.getHeatLevelFromFuelType(fuelType);
     }
 
     @Override
@@ -80,6 +92,7 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
         }
         occupant = null;
         fullNbt = null;
+        totalStats = 0;
         refreshState();
     }
 
@@ -97,6 +110,7 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
 
         occupant = null;
         fullNbt = null;
+        totalStats = 0;
         if (!level.isClientSide) {
             OccupantTransfer.remove(level.dimension(), getBlockPos());
             BlockState emptyState = CobbleBlazeContent.POKEMON_BLAZE_BURNER.get().defaultBlockState();
@@ -133,6 +147,7 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
         }
         occupant = payload.descriptor();
         fullNbt = payload.fullNbt().copy();
+        totalStats = Occupants.totalStats(level.registryAccess(), fullNbt);
         refreshState();
     }
 

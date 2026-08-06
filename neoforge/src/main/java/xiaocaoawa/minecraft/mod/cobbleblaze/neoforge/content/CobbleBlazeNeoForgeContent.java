@@ -1,6 +1,8 @@
 package xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content;
 
 import com.mrh0.createaddition.blocks.liquid_blaze_burner.LiquidBlazeBurnerBlock;
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
+import com.simibubi.create.content.processing.burner.BlazeBurnerMovementBehaviour;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -9,6 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -62,8 +65,14 @@ public final class CobbleBlazeNeoForgeContent {
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITY_TYPES.register(modBus);
+        modBus.addListener(CobbleBlazeNeoForgeContent::commonSetup);
         modBus.addListener(CobbleBlazeNeoForgeContent::registerCapabilities);
         modBus.addListener(CobbleBlazeNeoForgeContent::addCreativeTab);
+    }
+
+    private static void commonSetup(FMLCommonSetupEvent event) {
+        event.enqueueWork(() -> MovementBehaviour.REGISTRY.register(
+                POKEMON_LIQUID_BLAZE_BURNER.get(), new BlazeBurnerMovementBehaviour()));
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

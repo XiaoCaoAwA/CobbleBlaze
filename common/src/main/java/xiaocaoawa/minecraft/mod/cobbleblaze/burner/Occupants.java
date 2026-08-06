@@ -5,6 +5,8 @@ import com.cobblemon.mod.common.api.types.ElementalTypes;
 import com.cobblemon.mod.common.pokemon.Pokemon;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 
 /** Helpers for translating between live {@link Pokemon} instances and our render descriptor. */
@@ -26,5 +28,26 @@ public final class Occupants {
             }
         }
         return false;
+    }
+
+    /** Returns the six displayed battle stats, using max HP rather than current HP. */
+    public static int totalStats(Pokemon pokemon) {
+        return pokemon.getMaxHealth()
+                + pokemon.getAttack()
+                + pokemon.getDefence()
+                + pokemon.getSpecialAttack()
+                + pokemon.getSpecialDefence()
+                + pokemon.getSpeed();
+    }
+
+    public static int totalStats(RegistryAccess registries, CompoundTag nbt) {
+        if (registries == null || nbt == null || nbt.isEmpty()) {
+            return 0;
+        }
+        try {
+            return totalStats(Pokemon.Companion.loadFromNBT(registries, nbt));
+        } catch (RuntimeException ignored) {
+            return 0;
+        }
     }
 }

@@ -1,6 +1,8 @@
 package xiaocaoawa.minecraft.mod.cobbleblaze.content;
 
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
+import com.simibubi.create.content.processing.burner.BlazeBurnerMovementBehaviour;
 import dev.architectury.registry.CreativeTabRegistry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.RegistrySupplier;
@@ -53,6 +55,8 @@ public final class CobbleBlazeContent {
             return;
         }
         registered = true;
+        POKEMON_BLAZE_BURNER.listen(block -> MovementBehaviour.REGISTRY.register(
+                block, new BlazeBurnerMovementBehaviour()));
         BLOCKS.register();
         ITEMS.register();
         BLOCK_ENTITY_TYPES.register();
