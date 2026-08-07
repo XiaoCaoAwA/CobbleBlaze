@@ -5,11 +5,12 @@ import com.simibubi.create.content.processing.burner.BlazeBurnerBlock;
 import com.simibubi.create.content.processing.burner.BlazeBurnerBlockEntity;
 import java.util.List;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
@@ -65,6 +66,11 @@ public final class PokemonBlazeBurnerBlock extends BlazeBurnerBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof PokemonBlazeBurnerBlockEntity burner) {
+            CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+            if (data != null) {
+                boolean regeneratePokemonIdentity = placer instanceof Player player && player.hasInfiniteMaterials();
+                burner.restoreFromItem(data.copyTag(), regeneratePokemonIdentity);
+            }
             burner.refreshHeatState();
         }
     }
@@ -72,25 +78,28 @@ public final class PokemonBlazeBurnerBlock extends BlazeBurnerBlock {
     @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
-        return List.of(createStack(blockEntity, builder.getLevel().registryAccess()));
+        return List.of(createStack(blockEntity));
     }
 
     @Override
     public ItemStack getCloneItemStack(BlockState state, HitResult target, LevelReader level,
                                        BlockPos pos, Player player) {
-        return createStack(level.getBlockEntity(pos), level.registryAccess());
+        return createStack(level.getBlockEntity(pos));
     }
 
     @Override
     public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-        return createStack(level.getBlockEntity(pos), level.registryAccess());
+        return createStack(level.getBlockEntity(pos));
     }
 
-    private static ItemStack createStack(BlockEntity blockEntity, HolderLookup.Provider registries) {
+    private static ItemStack createStack(BlockEntity blockEntity) {
         ItemStack stack = new ItemStack(CobbleBlazeContent.POKEMON_BLAZE_BURNER_ITEM.get());
-        if (blockEntity instanceof PokemonBlazeBurnerBlockEntity burner
-                && burner.cobbleblaze$getOccupant() != null) {
-            burner.saveToItem(stack, registries);
+        if (blockEntity instanceof PokemonBlazeBurnerBlockEntity burner) {
+            CompoundTag data = new CompoundTag();
+            burner.writeItemData(data);
+            if (!data.isEmpty()) {
+                BlockItem.setBlockEntityData(stack, burner.getType(), data);
+            }
         }
         return stack;
     }

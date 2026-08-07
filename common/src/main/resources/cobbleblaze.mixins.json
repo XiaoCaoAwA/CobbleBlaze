@@ -10,8 +10,7 @@
     "client.LiquidBlazeBurnerVisualMixin"
   ],
   "mixins": [
-    "LiquidBlazeBurnerBlockEntityMixin",
-    "SmartBlockEntityMixin"
+    "LiquidBlazeBurnerBlockEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

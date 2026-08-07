@@ -16,6 +16,7 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
 /** Draws a burner item as its cage plus the Cobblemon stored in its block-entity data. */
 public final class PokemonBurnerItemRenderer implements CobblemonBuiltinItemRenderer {
     private final BurnerOccupantRenderer occupantRenderer = new BurnerOccupantRenderer();
+    private final FloatingState floatingState = new FloatingState();
 
     @Override
     public void render(ItemStack stack, ItemDisplayContext mode, PoseStack poseStack,
@@ -34,7 +35,7 @@ public final class PokemonBurnerItemRenderer implements CobblemonBuiltinItemRend
                     poseStack,
                     bufferSource,
                     occupant,
-                    new FloatingState(),
+                    floatingState,
                     light,
                     0.0F,
                     0.0F);

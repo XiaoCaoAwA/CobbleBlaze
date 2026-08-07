@@ -19,7 +19,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xiaocaoawa.minecraft.mod.cobbleblaze.CobbleBlaze;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
-import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantTransfer;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.Occupants;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
@@ -58,7 +57,6 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
 
     @Inject(method = "read", at = @At("RETURN"))
     private void cobbleblaze$read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
-        CobblemonOccupant previous = this.cobbleblaze$occupant;
         this.cobbleblaze$occupant = tag.contains("CobbleBlaze")
                 ? CobblemonOccupant.load(tag.getCompound("CobbleBlaze"))
                 : null;
@@ -74,10 +72,6 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
                             this.cobbleblaze$fullNbt);
         } else {
             this.cobbleblaze$totalStats = tag.getInt("CobbleBlazeTotalStats");
-        }
-        if (previous != this.cobbleblaze$occupant) {
-            BlockEntity self = (BlockEntity) (Object) this;
-            OccupantChangeBus.fire(self.getBlockPos(), this.cobbleblaze$occupant);
         }
     }
 

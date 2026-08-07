@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 
 /**
- * Suppresses CCA's liquid-blaze-burner rendering (the Flywheel path) when occupied — the mirror of
+ * Suppresses CCA's liquid-blaze-burner rendering (the Flywheel path) when occupied; the mirror of
  * {@link BlazeBurnerVisualMixin} for Create's burner. Only applied when CCA is present.
  */
 @Mixin(value = LiquidBlazeBurnerVisual.class, remap = false)

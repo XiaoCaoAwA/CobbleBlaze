@@ -13,8 +13,7 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 /**
  * Suppresses Create's blaze rendering on the <b>Flywheel-off / fallback</b> path, where the BER
  * {@code renderSafe} actually runs. We only cancel (no drawing) when occupied — the Cobblemon
- * model is drawn from the world-render event, the same path used when Flywheel is on, so there is
- * never a double-draw.
+ * model is drawn by its dedicated block-entity renderer, so there is never a double-draw.
  *
  * <p>Contraptions are handled by the dedicated Pokemon burner movement behaviour.</p>
  */

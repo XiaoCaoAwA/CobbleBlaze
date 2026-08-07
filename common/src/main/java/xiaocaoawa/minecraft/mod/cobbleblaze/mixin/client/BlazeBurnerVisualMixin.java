@@ -20,7 +20,7 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
  * Suppresses Create's blaze rendering on the <b>Flywheel</b> path (the default in 1.21.1 Create).
  * When a burner is occupied we hide every blaze instance (head, goggles, hat, rods, flame) via
  * {@code setVisible(false)} and skip the per-frame animation; the Cobblemon model is drawn
- * separately from the world-render event. This is suppression only — no drawing here.
+ * separately by its dedicated block-entity renderer. This is suppression only; no drawing here.
  *
  * <p>Without this mixin the blaze would render <em>on top of</em> the Cobblemon whenever Flywheel
  * is enabled, because {@code BlazeBurnerRenderer} (the BER) is skipped entirely when Flywheel is on.</p>

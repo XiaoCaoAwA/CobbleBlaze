@@ -8,8 +8,11 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -69,6 +72,20 @@ public final class PokemonLiquidBlazeBurnerBlock extends LiquidBlazeBurnerBlock 
     }
 
     @Override
+    public void setPlacedBy(net.minecraft.world.level.Level level, BlockPos pos, BlockState state,
+                            LivingEntity placer, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        if (level.getBlockEntity(pos) instanceof PokemonLiquidBlazeBurnerBlockEntity burner) {
+            CustomData data = stack.get(DataComponents.BLOCK_ENTITY_DATA);
+            if (data != null) {
+                boolean regeneratePokemonIdentity = placer instanceof Player player && player.hasInfiniteMaterials();
+                burner.restoreFromItem(data.copyTag(), regeneratePokemonIdentity);
+            }
+            burner.refreshState();
+        }
+    }
+
+    @Override
     protected List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
         BlockEntity blockEntity = builder.getOptionalParameter(LootContextParams.BLOCK_ENTITY);
         return List.of(createStack(blockEntity, builder.getLevel().registryAccess()));
@@ -88,7 +105,11 @@ public final class PokemonLiquidBlazeBurnerBlock extends LiquidBlazeBurnerBlock 
     private static ItemStack createStack(BlockEntity blockEntity, HolderLookup.Provider registries) {
         ItemStack stack = new ItemStack(CobbleBlazeNeoForgeContent.POKEMON_LIQUID_BLAZE_BURNER_ITEM.get());
         if (blockEntity instanceof PokemonLiquidBlazeBurnerBlockEntity burner) {
-            burner.saveToItem(stack, registries);
+            CompoundTag data = new CompoundTag();
+            burner.writeItemData(data, registries);
+            if (!data.isEmpty()) {
+                BlockItem.setBlockEntityData(stack, burner.getType(), data);
+            }
         }
         return stack;
     }

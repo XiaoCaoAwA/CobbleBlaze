@@ -24,8 +24,8 @@ import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
  * burner's block corner. Uses Cobblemon's {@link VaryingModelRepository} exactly like
  * {@code RestorationTankRenderer} does (entityless, via {@link FloatingState}).
  *
- * <p>Stationary burners call this from the world-render event; moving burners call it from their
- * movement behaviour with Create's composed contraption transform. This renderer never touches
+ * <p>Stationary burners call this from their block-entity renderer; moving Create contraptions call
+ * it from their movement behaviour with Create's composed transform. This renderer never touches
  * Create's blaze model.</p>
  */
 public final class BurnerOccupantRenderer {

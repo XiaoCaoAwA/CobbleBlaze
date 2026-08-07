@@ -16,7 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import xiaocaoawa.minecraft.mod.cobbleblaze.CobbleBlaze;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
-import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantTransfer;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.Occupants;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
@@ -26,9 +25,20 @@ public final class PokemonBlazeBurnerBlockEntity extends BlazeBurnerBlockEntity 
     private CobblemonOccupant occupant;
     private CompoundTag fullNbt;
     private int totalStats;
+    private boolean initialSyncPending;
 
     public PokemonBlazeBurnerBlockEntity(BlockPos pos, BlockState state) {
         super(CobbleBlazeContent.POKEMON_BLAZE_BURNER_ENTITY.get(), pos, state);
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        Level level = getLevel();
+        if (initialSyncPending && level != null && !level.isClientSide) {
+            initialSyncPending = false;
+            sendData();
+        }
     }
 
     @Override
@@ -59,7 +69,6 @@ public final class PokemonBlazeBurnerBlockEntity extends BlazeBurnerBlockEntity 
         } else {
             totalStats = tag.getInt("CobbleBlazeTotalStats");
         }
-        OccupantChangeBus.fire(getBlockPos(), occupant);
     }
 
     @Override
@@ -147,4 +156,40 @@ public final class PokemonBlazeBurnerBlockEntity extends BlazeBurnerBlockEntity 
         setChanged();
         sendData();
     }
+
+    /** Restores the occupant immediately on both placement sides, before the server update arrives. */
+    public void restoreFromItem(CompoundTag tag, boolean regeneratePokemonIdentity) {
+        if (!tag.contains("CobbleBlaze")) {
+            return;
+        }
+        occupant = CobblemonOccupant.load(tag.getCompound("CobbleBlaze"));
+        totalStats = tag.getInt("CobbleBlazeTotalStats");
+
+        Level level = getLevel();
+        if (level == null || !level.isClientSide) {
+            fullNbt = tag.contains("CobbleBlazePokemon")
+                    ? tag.getCompound("CobbleBlazePokemon").copy()
+                    : null;
+            if (regeneratePokemonIdentity && fullNbt != null && level != null) {
+                Pokemon pokemon = Pokemon.Companion.loadFromNBT(level.registryAccess(), fullNbt);
+                Pokemon copy = pokemon.clone(true, level.registryAccess());
+                fullNbt = copy.saveToNBT(level.registryAccess(), new CompoundTag());
+            }
+            // Placement's initial block update can precede BLOCK_ENTITY_DATA loading. Resend after
+            // the block entity has completed its first server tick so the client cannot retain null.
+            initialSyncPending = true;
+        }
+    }
+
+    public void writeItemData(CompoundTag tag) {
+        if (occupant == null || fullNbt == null) {
+            return;
+        }
+        tag.put("CobbleBlaze", occupant.save());
+        tag.putInt("CobbleBlazeTotalStats", totalStats);
+        if (fullNbt != null) {
+            tag.put("CobbleBlazePokemon", fullNbt.copy());
+        }
+    }
+
 }

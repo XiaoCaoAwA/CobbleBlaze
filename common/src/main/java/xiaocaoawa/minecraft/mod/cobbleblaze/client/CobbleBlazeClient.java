@@ -4,32 +4,18 @@ import com.cobblemon.mod.common.client.render.models.blockbench.FloatingState;
 import com.cobblemon.mod.common.client.render.item.CobblemonBuiltinItemRendererRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
+import dev.architectury.registry.client.rendering.BlockEntityRendererRegistry;
 import dev.architectury.registry.client.rendering.RenderTypeRegistry;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.WeakHashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.phys.Vec3;
-import xiaocaoawa.minecraft.mod.cobbleblaze.burner.BlazeBurnerOccupant;
 import xiaocaoawa.minecraft.mod.cobbleblaze.burner.CobblemonOccupant;
-import xiaocaoawa.minecraft.mod.cobbleblaze.burner.OccupantChangeBus;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.CobbleBlazeContent;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlockEntity;
 
-/**
- * Client-only bookkeeping for rendering: tracks which loaded burners are occupied (fed by
- * {@link OccupantChangeBus}), keeps a {@link FloatingState} per burner, and exposes the frame
- * entry point called by each platform's world-render hook.
- */
+/** Client registrations and the animation state used by moving Pokemon burners. */
 public final class CobbleBlazeClient {
 
-    private static final Set<BlockPos> OCCUPIED = ConcurrentHashMap.newKeySet();
-    private static final ConcurrentHashMap<BlockPos, FloatingState> STATES = new ConcurrentHashMap<>();
     private static final BurnerOccupantRenderer RENDERER = new BurnerOccupantRenderer();
     private static final PokemonBurnerItemRenderer ITEM_RENDERER = new PokemonBurnerItemRenderer();
 
@@ -49,59 +35,11 @@ public final class CobbleBlazeClient {
         // Create registers its blaze burner on this layer; the inherited OBJ cage needs the same
         // alpha-tested layer or its transparent texture areas render as opaque dark polygons.
         RenderTypeRegistry.register(RenderType.cutoutMipped(), CobbleBlazeContent.POKEMON_BLAZE_BURNER.get());
+        BlockEntityRendererRegistry.register(
+                CobbleBlazeContent.POKEMON_BLAZE_BURNER_ENTITY.get(),
+                context -> new PokemonBurnerBlockEntityRenderer<PokemonBlazeBurnerBlockEntity>());
         CobblemonBuiltinItemRendererRegistry.INSTANCE.register(
                 CobbleBlazeContent.POKEMON_BLAZE_BURNER_ITEM.get(), ITEM_RENDERER);
-
-        OccupantChangeBus.setListener((pos, occupant) -> {
-            if (occupant == null) {
-                OCCUPIED.remove(pos);
-                STATES.remove(pos);
-            } else {
-                OCCUPIED.add(pos);
-                STATES.computeIfAbsent(pos, p -> new FloatingState());
-            }
-        });
-    }
-
-    /**
-     * Called once per frame from the world-render event. {@code camera} is the camera position;
-     * the {@code poseStack} is camera-space (origin at the camera), so we translate by world-minus-camera.
-     */
-    public static void renderOccupants(Level level, PoseStack poseStack, MultiBufferSource bufferSource,
-                                       float partialTick, Vec3 camera) {
-        if (OCCUPIED.isEmpty()) {
-            return;
-        }
-        // Snapshot to avoid CME / mutation-during-iteration across the listener.
-        List<BlockPos> snapshot = new ArrayList<>(OCCUPIED);
-        for (BlockPos pos : snapshot) {
-            CobblemonOccupant occupant = readOccupant(level, pos);
-            if (occupant == null) {
-                OCCUPIED.remove(pos);
-                STATES.remove(pos);
-                continue;
-            }
-            FloatingState state = STATES.computeIfAbsent(pos, p -> new FloatingState());
-
-            // Yaw toward the player (same idea as Create's blaze head tracking). Computed from the
-            // camera (= local player) position relative to the burner centre.
-            double dx = camera.x - (pos.getX() + 0.5);
-            double dz = camera.z - (pos.getZ() + 0.5);
-            float playerFacingYaw = (float) Math.toDegrees(Math.atan2(dx, dz));
-
-            poseStack.pushPose();
-            poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
-            RENDERER.render(poseStack, bufferSource, occupant, state, LIGHT, partialTick, playerFacingYaw);
-            poseStack.popPose();
-        }
-    }
-
-    private static CobblemonOccupant readOccupant(Level level, BlockPos pos) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof BlazeBurnerOccupant burner) {
-            return burner.cobbleblaze$getOccupant();
-        }
-        return null;
     }
 
     // One animation state per moving burner; weak keys release it with the contraption context.
