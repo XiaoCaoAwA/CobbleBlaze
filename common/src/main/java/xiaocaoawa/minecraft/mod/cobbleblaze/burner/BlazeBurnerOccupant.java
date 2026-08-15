@@ -16,6 +16,9 @@ public interface BlazeBurnerOccupant {
     @Nullable
     CobblemonOccupant cobbleblaze$getOccupant();
 
+    /** Six-stat total used by the burner heat scaling and fuel rules. */
+    int cobbleblaze$getTotalStats();
+
     /** Stores the given Pokémon in the burner (full data preserved), persists + syncs. Pass {@code null} to clear. */
     void cobbleblaze$deposit(@Nullable Pokemon pokemon);
 

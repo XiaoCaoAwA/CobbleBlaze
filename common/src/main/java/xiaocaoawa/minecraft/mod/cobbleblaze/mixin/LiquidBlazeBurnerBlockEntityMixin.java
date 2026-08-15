@@ -44,6 +44,9 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
     @Unique
     private CompoundTag cobbleblaze$fullNbt;
 
+    @Unique
+    private boolean cobbleblaze$transferClaimAttempted;
+
     @Inject(method = "write", at = @At("RETURN"))
     private void cobbleblaze$write(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
         if (this.cobbleblaze$occupant != null) {
@@ -87,25 +90,32 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
 
     /**
      * Claim an occupant handed off by a burner that was just converted into this one (CCA straw).
-     * Runs on the first server tick after creation, since the fresh liquid burner loads no NBT.
+     * Runs once, on the first server tick after creation (the offer is made before the block swap
+     * completes), since the fresh liquid burner loads no NBT. Never polls on later ticks — every
+     * empty liquid burner used to hit the transfer map every tick, which spammed the log.
      */
     @Inject(method = "tick", at = @At("HEAD"), require = 0)
     private void cobbleblaze$tickClaim(CallbackInfo ci) {
-        if (this.cobbleblaze$occupant == null) {
-            BlockEntity self = (BlockEntity) (Object) this;
-            Level level = self.getLevel();
-            if (level != null && !level.isClientSide) {
-                OccupantTransfer.Payload payload = OccupantTransfer.take(level.dimension(), self.getBlockPos());
-                if (payload != null) {
-                    System.out.println("[CobbleBlaze] liquid tick-claim: reclaimed occupant " + payload.descriptor().species + " at " + self.getBlockPos());
-                    this.cobbleblaze$occupant = payload.descriptor();
-                    this.cobbleblaze$fullNbt = payload.fullNbt();
-                    this.cobbleblaze$totalStats = Occupants.totalStats(level.registryAccess(), this.cobbleblaze$fullNbt);
-                    LiquidBlazeBurnerBlockEntity be = (LiquidBlazeBurnerBlockEntity) (Object) this;
-                    be.updateBlockState();
-                    be.sendData();
-                }
-            }
+        if (this.cobbleblaze$transferClaimAttempted) {
+            return;
+        }
+        BlockEntity self = (BlockEntity) (Object) this;
+        Level level = self.getLevel();
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        this.cobbleblaze$transferClaimAttempted = true;
+        if (this.cobbleblaze$occupant != null) {
+            return;
+        }
+        OccupantTransfer.Payload payload = OccupantTransfer.take(level.dimension(), self.getBlockPos());
+        if (payload != null) {
+            this.cobbleblaze$occupant = payload.descriptor();
+            this.cobbleblaze$fullNbt = payload.fullNbt();
+            this.cobbleblaze$totalStats = Occupants.totalStats(level.registryAccess(), this.cobbleblaze$fullNbt);
+            LiquidBlazeBurnerBlockEntity be = (LiquidBlazeBurnerBlockEntity) (Object) this;
+            be.updateBlockState();
+            be.sendData();
         }
     }
 
@@ -113,6 +123,12 @@ public abstract class LiquidBlazeBurnerBlockEntityMixin implements BlazeBurnerOc
     @Unique
     public @Nullable CobblemonOccupant cobbleblaze$getOccupant() {
         return this.cobbleblaze$occupant;
+    }
+
+    @Override
+    @Unique
+    public int cobbleblaze$getTotalStats() {
+        return this.cobbleblaze$totalStats;
     }
 
     @Override

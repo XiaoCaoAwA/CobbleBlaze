@@ -29,14 +29,15 @@ public final class OccupantTransfer {
     public static void offer(ResourceKey<Level> dimension, BlockPos pos, CobblemonOccupant descriptor, CompoundTag fullNbt) {
         if (descriptor != null) {
             PENDING.put(key(dimension, pos), new Payload(descriptor, fullNbt));
-            System.out.println("[CobbleBlaze] transfer offer: " + descriptor.species + " @ " + pos);
         }
     }
 
+    /** Claims and removes a pending payload; cheap when nothing is pending (callers may poll). */
     public static Payload take(ResourceKey<Level> dimension, BlockPos pos) {
-        Payload p = PENDING.remove(key(dimension, pos));
-        System.out.println("[CobbleBlaze] transfer take @ " + pos + " -> " + (p == null ? "none" : p.descriptor().species));
-        return p;
+        if (PENDING.isEmpty()) {
+            return null;
+        }
+        return PENDING.remove(key(dimension, pos));
     }
 
     public static void remove(ResourceKey<Level> dimension, BlockPos pos) {

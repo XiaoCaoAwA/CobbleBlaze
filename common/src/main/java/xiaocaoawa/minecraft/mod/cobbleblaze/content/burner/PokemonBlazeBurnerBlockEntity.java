@@ -105,6 +105,11 @@ public final class PokemonBlazeBurnerBlockEntity extends BlazeBurnerBlockEntity 
     }
 
     @Override
+    public int cobbleblaze$getTotalStats() {
+        return totalStats;
+    }
+
+    @Override
     public void cobbleblaze$deposit(@Nullable Pokemon pokemon) {
         if (pokemon == null) {
             occupant = null;

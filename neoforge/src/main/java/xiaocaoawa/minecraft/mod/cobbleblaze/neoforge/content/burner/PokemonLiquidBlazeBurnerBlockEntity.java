@@ -26,6 +26,7 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
     private CompoundTag fullNbt;
     private int totalStats;
     private boolean initialSyncPending;
+    private boolean transferClaimAttempted;
 
     public PokemonLiquidBlazeBurnerBlockEntity(BlockPos pos, BlockState state) {
         super(CobbleBlazeNeoForgeContent.POKEMON_LIQUID_BLAZE_BURNER_ENTITY.get(), pos, state);
@@ -89,6 +90,11 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
     }
 
     @Override
+    public int cobbleblaze$getTotalStats() {
+        return totalStats;
+    }
+
+    @Override
     public void cobbleblaze$deposit(@Nullable Pokemon pokemon) {
         // This block can only inherit a Pokemon from an occupied chamber during straw conversion.
         if (pokemon != null) {
@@ -140,9 +146,17 @@ public final class PokemonLiquidBlazeBurnerBlockEntity extends LiquidBlazeBurner
         return tankInventory;
     }
 
+    /** Runs once on the first server tick; never polls afterwards (see OccupantTransfer). */
     private void claimTransferredOccupant() {
+        if (transferClaimAttempted) {
+            return;
+        }
         Level level = getLevel();
-        if (occupant != null || level == null || level.isClientSide) {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        transferClaimAttempted = true;
+        if (occupant != null) {
             return;
         }
         OccupantTransfer.Payload payload = OccupantTransfer.take(level.dimension(), getBlockPos());

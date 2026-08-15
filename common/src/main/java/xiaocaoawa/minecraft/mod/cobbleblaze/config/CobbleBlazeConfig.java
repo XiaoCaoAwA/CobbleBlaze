@@ -41,6 +41,9 @@ public final class CobbleBlazeConfig {
     /** A burner is infinite only when the stored Pokemon's six battle stats exceed this value. */
     public int infiniteBurningStatThreshold = 1000;
 
+    /** Percentage points of boiler heat added by each point of the stored Pokemon's total stats. */
+    public float boilerHeatBonusPercentPerStat = 0.2F;
+
     /** Global multiplier on the rendered model size (multiplied by the species' baseScale). */
     public float modelScale = 0.5F;
 
@@ -118,6 +121,14 @@ public final class CobbleBlazeConfig {
 
     public boolean hasInfiniteBurning(int totalStats) {
         return totalStats > infiniteBurningStatThreshold;
+    }
+
+    /** Returns the multiplier applied to a Pokemon burner boiler's base heat. */
+    public float boilerHeatMultiplier(int totalStats) {
+        if (totalStats <= 0 || boilerHeatBonusPercentPerStat <= 0.0F) {
+            return 1.0F;
+        }
+        return 1.0F + totalStats * boilerHeatBonusPercentPerStat / 100.0F;
     }
 
     private static BlazeBurnerBlock.HeatLevel parseHeatLevel(String name) {

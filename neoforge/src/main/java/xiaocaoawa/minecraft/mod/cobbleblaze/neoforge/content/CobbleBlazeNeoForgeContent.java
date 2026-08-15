@@ -2,6 +2,9 @@ package xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content;
 
 import com.mrh0.createaddition.blocks.liquid_blaze_burner.LiquidBlazeBurnerBlock;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
+import com.simibubi.create.api.boiler.BoilerHeater;
+import com.simibubi.create.api.registry.CreateRegistries;
+import com.simibubi.create.content.kinetics.mechanicalArm.ArmInteractionPointType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
@@ -19,8 +22,10 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import xiaocaoawa.minecraft.mod.cobbleblaze.CobbleBlaze;
+import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerArmInteraction;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerBlockItem;
 import xiaocaoawa.minecraft.mod.cobbleblaze.content.burner.PokemonBlazeBurnerMovementBehaviour;
+import xiaocaoawa.minecraft.mod.cobbleblaze.burner.PokemonBoilerHeater;
 import xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content.burner.PokemonLiquidBlazeBurnerBlock;
 import xiaocaoawa.minecraft.mod.cobbleblaze.neoforge.content.burner.PokemonLiquidBlazeBurnerBlockEntity;
 
@@ -30,6 +35,8 @@ public final class CobbleBlazeNeoForgeContent {
     private static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(CobbleBlaze.MOD_ID);
     private static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITY_TYPES =
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, CobbleBlaze.MOD_ID);
+    private static final DeferredRegister<ArmInteractionPointType> ARM_INTERACTION_POINT_TYPES =
+            DeferredRegister.create(CreateRegistries.ARM_INTERACTION_POINT_TYPE, CobbleBlaze.MOD_ID);
 
     public static final DeferredBlock<PokemonLiquidBlazeBurnerBlock> POKEMON_LIQUID_BLAZE_BURNER =
             BLOCKS.register("pokemon_liquid_blaze_burner", () -> new PokemonLiquidBlazeBurnerBlock(
@@ -53,6 +60,14 @@ public final class CobbleBlazeNeoForgeContent {
                                     POKEMON_LIQUID_BLAZE_BURNER.get())
                             .build(null));
 
+    /** Lets Create's Mechanical Arm target the Pokemon liquid burner to feed it item fuel. */
+    public static final DeferredHolder<ArmInteractionPointType, ArmInteractionPointType>
+            POKEMON_LIQUID_BLAZE_BURNER_ARM_POINT = ARM_INTERACTION_POINT_TYPES.register(
+                    "pokemon_liquid_blaze_burner",
+                    () -> new PokemonBlazeBurnerArmInteraction.Type(
+                            state -> state.getBlock() instanceof PokemonLiquidBlazeBurnerBlock,
+                            LiquidBlazeBurnerBlock::tryInsert));
+
     private static boolean registered;
 
     private CobbleBlazeNeoForgeContent() {}
@@ -65,14 +80,19 @@ public final class CobbleBlazeNeoForgeContent {
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITY_TYPES.register(modBus);
+        ARM_INTERACTION_POINT_TYPES.register(modBus);
         modBus.addListener(CobbleBlazeNeoForgeContent::commonSetup);
         modBus.addListener(CobbleBlazeNeoForgeContent::registerCapabilities);
         modBus.addListener(CobbleBlazeNeoForgeContent::addCreativeTab);
     }
 
     private static void commonSetup(FMLCommonSetupEvent event) {
-        event.enqueueWork(() -> MovementBehaviour.REGISTRY.register(
-                POKEMON_LIQUID_BLAZE_BURNER.get(), new PokemonBlazeBurnerMovementBehaviour()));
+        event.enqueueWork(() -> {
+            MovementBehaviour.REGISTRY.register(
+                    POKEMON_LIQUID_BLAZE_BURNER.get(), new PokemonBlazeBurnerMovementBehaviour());
+            BoilerHeater.REGISTRY.register(
+                    POKEMON_LIQUID_BLAZE_BURNER.get(), PokemonBoilerHeater.INSTANCE);
+        });
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
